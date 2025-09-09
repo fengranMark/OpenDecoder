@@ -1,10 +1,10 @@
 #!/bin/bash
 
 experiment_name=Qwen2.5-3B-Instruct
-model_path=../checkpoints/Qwen2.5-3B-Instruct
+model_path=Qwen/Qwen2.5-3B-Instruct
 config_path=../src/model/qwen_decoder/final_config.json
 model_pattern=qwen_decoder
-savedir_imodel=../baseModels/${experiment_name}
+savedir_imodel=../src/model/${experiment_name}
 src_path=./src
 savepath_basemodel_namemodules=./basemodel.txt
 savepath_imodel_namemodules=./imodel.txt

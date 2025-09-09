@@ -34,7 +34,7 @@ python ./inference.py \
     --output_data_path $OUTPUT_DATA_PATH \
     --result_path $RESULT_PATH \
     --model_pattern $MODEL_PATTERN \
-    --train_mode "sft" \ # with standard sft of opendecoder
+    --train_mode "open" \ # with standard sft of opendecoder
     --add_irrelevant_psg False \
     --full_irrelevant_psg True \
     --top_k 10 \
@@ -44,15 +44,5 @@ python ./inference.py \
     --bf16 True \
     --per_device_train_batch_size 1 \
     --gradient_accumulation_steps 1 \
-    --save_strategy "steps" \
-    --save_steps 10000 \
-    --save_safetensors True \
-    --gradient_checkpointing False \
-    --save_total_limit 5 \
-    --learning_rate 1e-5 \
-    --weight_decay 0.1 \
-    --warmup_ratio 0.03 \
-    --lr_scheduler_type "cosine" \
-    --logging_steps 2 \
     --model_max_length 4096 \
     --lazy_loading True \

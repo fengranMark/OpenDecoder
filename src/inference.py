@@ -1,0 +1,336 @@
+#    Copyright 2023 Rohan Taori, Ishaan Gulrajani, Tianyi Zhang, Yann Dubois, Xuechen Li
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+from dataclasses import dataclass, field
+from torch.utils.data import Dataset, DataLoader
+import pathlib
+from typing import Optional
+import torch
+import transformers
+import os
+import sys
+#import wandb
+import tqdm
+import argparse
+import json
+#wandb.init(mode="disabled")
+from src.eval.eval_metric import f1_score, acc_score, EM_score
+from src.dataset.RAG_dataset import Eval_SFT_Dataset, Eval_Open_Dataset, Eval_MultiOpen_Dataset
+import importlib
+
+
+# def load_imodel_and_iconfig_package(model_pattern, src_path):
+#     # 动态构建模型路径
+#     model_path = os.path.join(src_path, "model")
+
+#     # 判断路径是否存在
+#     if not os.path.exists(model_path):
+#         print(f"路径不存在: {model_path}")
+#         return None, None
+
+#     # 将该路径添加到 sys.path 中，确保 Python 可以找到这些模块
+#     if model_path not in sys.path:
+#         sys.path.append(model_path)
+
+#     # 动态导入模型和配置模块
+#     try:
+#         # 动态导入模型
+#         IModelForCausalLM = importlib.import_module(
+#             f"{model_pattern}.modeling"
+#         ).IModelForCausalLM
+#         IConfig = importlib.import_module(f"{model_pattern}.configuration").IConfig
+#         # 返回导入的类
+#         return IModelForCausalLM, IConfig
+#     except ModuleNotFoundError as e:
+#         print(f"模块加载失败: {e}")
+#         return None, None
+
+def load_imodel_and_iconfig_package(model_pattern, src_path):
+    # 动态构建模型路径
+    model_path = os.path.join(src_path, "model")
+
+    # 判断路径是否存在
+    if not os.path.exists(model_path):
+        print(f"路径不存在: {model_path}")
+        return None, None
+
+    # 将该路径添加到 sys.path 中，确保 Python 可以找到这些模块
+    if model_path not in sys.path:
+        sys.path.append(model_path)
+
+    # 动态导入模型和配置模块
+    try:
+        # 动态导入模型
+        IModelForCausalLM = importlib.import_module(
+            f"{model_pattern}.modeling"
+        ).IModelForCausalLM
+        IConfig = importlib.import_module(f"{model_pattern}.configuration").IConfig
+        # 返回导入的类
+        return IModelForCausalLM, IConfig
+    except ModuleNotFoundError as e:
+        print(f"模块加载失败: {e}")
+        return None, None
+
+
+@dataclass
+class ModelArguments:
+    model_name_or_path: Optional[str] = field(default="Qwen/Qwen2.5-7B")
+    enable_flash_attn: bool = field(default=False)
+    is_base: bool = field(default=False)
+    model_pattern: Optional[str] = field(default="phoenix")
+    src_path: Optional[str] = field(default="phoenix")
+    num_equal_loop_layers: Optional[int] = field(default=None)
+    # loop_pattern: Optional[list] = field(default=None)
+
+
+@dataclass
+class DataArguments:
+    NQ_data_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    NQ_RAG_data_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    NQ_LLM_score_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    NQ_QPP_score_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    hotpotqa_data_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    hotpotqa_RAG_data_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    hotpotqa_LLM_score_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    hotpotqa_QPP_score_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    popqa_data_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    popqa_RAG_data_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    popqa_LLM_score_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    popqa_QPP_score_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    trivialqa_data_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    trivialqa_RAG_data_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    trivialqa_LLM_score_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    trivialqa_QPP_score_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    twiki_data_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    twiki_RAG_data_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    twiki_LLM_score_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    twiki_QPP_score_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    RAG_text_path: str = field(
+        default=None, metadata={"help": "Path to the training data."}
+    )
+    val_data_path: str = field(
+        default=None, metadata={"help": "Path to the validation data."}
+    )
+    output_data_path: str = field(
+        default=None, metadata={"help": "Path to the validation data."}
+    )
+    result_path: str = field(
+        default=None, metadata={"help": "Path to the validation data."}
+    )
+    top_k: int = field(default=5)
+    add_irrelevant_psg: bool = field(default=False)
+    add_LLM_scores: bool = field(default=False)
+    add_QPP_scores: bool = field(default=False)
+    full_irrelevant_psg: bool = field(default=False)
+    normalization_type: str = field(default="normal")
+    shuffle_RAG: bool = field(default=False)
+    lazy_loading: bool = False
+    system_prompt: str = field(default=None)
+
+
+@dataclass
+class TrainingArguments(transformers.TrainingArguments):
+    cache_dir: Optional[str] = field(default=None)
+    optim: str = field(default="adamw_torch")
+    predict_with_generate: bool = True
+    train_mode: str = field(default="sft")
+    model_max_length: int = field(
+        default=4096,
+        metadata={
+            "help": "Maximum sequence length. Sequences will be right padded (and possibly truncated)."
+        },
+    )
+    checkpoint = None
+
+
+def inference():
+    parser = transformers.HfArgumentParser(
+        (ModelArguments, DataArguments, TrainingArguments)
+    )
+    model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+
+    if model_args.is_base:
+        config = transformers.AutoConfig.from_pretrained(model_args.model_name_or_path)
+    else:
+        IModelForCausalLM, IConfig = load_imodel_and_iconfig_package(
+            model_args.model_pattern, model_args.src_path
+        )
+        config = IConfig.from_pretrained(model_args.model_name_or_path)
+    enable_flash_attn = False
+    if (
+        model_args.enable_flash_attn
+        and getattr(config, "_attn_implementation", None) is not None
+    ):
+        config._attn_implementation = "flash_attention_2"
+        enable_flash_attn = True
+
+    if model_args.is_base:
+        model = transformers.AutoModelForCausalLM.from_pretrained(
+            model_args.model_name_or_path,
+            config=config,
+            torch_dtype=torch.bfloat16 if enable_flash_attn else "auto",
+            cache_dir=training_args.cache_dir,
+            trust_remote_code=True,
+        )
+    else:
+        model = IModelForCausalLM.from_pretrained(
+            model_args.model_name_or_path,
+            config=config,
+            torch_dtype=torch.bfloat16 if enable_flash_attn else "auto",
+            cache_dir=training_args.cache_dir,
+        )
+    device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    model.eval()
+    tokenizer = transformers.AutoTokenizer.from_pretrained(
+        model_args.model_name_or_path,
+        cache_dir=training_args.cache_dir,
+        model_max_length=training_args.model_max_length,
+        padding_side="left",
+        use_fast=False,
+        trust_remote_code=True,
+    )
+
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.unk_token
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token_id = tokenizer.eos_token_id
+    
+    # input_text = "who is in charge of enforcing the pendleton act of 1883"
+    # inputs = tokenizer(input_text, return_tensors="pt").to(device)
+    # with torch.no_grad():
+    #     output = model.generate(
+    #         **inputs,
+    #         max_new_tokens=16,
+    #         do_sample=True,
+    #         top_p=0.9,
+    #         temperature=0.8
+    # )
+    #tokenizer.decode(output[0])
+    special_passage_tokens = [f"Passage_{i+1}:" for i in range(20)]
+    tokenizer.add_special_tokens({'additional_special_tokens': special_passage_tokens})
+    model.resize_token_embeddings(len(tokenizer))  # Resize embeddings to accommodate new tokens
+    if training_args.train_mode == "sft":
+        eval_dataset = Eval_SFT_Dataset(tokenizer, data_args)
+    elif training_args.train_mode == "open":
+        if data_args.add_LLM_scores or data_args.add_QPP_scores:
+            eval_dataset = Eval_MultiOpen_Dataset(tokenizer, data_args)
+        else:
+            eval_dataset = Eval_Open_Dataset(tokenizer, data_args)
+    else:
+        raise ValueError
+    eval_loader = DataLoader(eval_dataset, batch_size=1, shuffle=False)
+
+    predictions, golds, f1, acc, em = [], [], [], [], []
+    cur = 0
+    os.makedirs(data_args.output_data_path, exist_ok=True)
+    output_file = os.path.join(data_args.output_data_path, "pred.json")
+    print("output_file_path", output_file)
+    with open(output_file, 'w') as fout:
+        record = {}
+        relevant_scores = None
+        for batch in eval_loader:
+            cur += 1
+            qid = batch["qid"]
+            question = batch["question"]
+            input_ids = batch["input_ids"].to(device)             # [seq_len]
+            attention_mask = batch["attention_mask"].to(device)    # [seq_len]
+            if training_args.train_mode == "open":
+                relevant_scores = batch["relevant_scores"].to(device)  # [seq_len]
+            gold_answers = batch["gold_answers"]
+            #breakpoint()
+            with torch.no_grad():
+                #try:
+                output_ids = model.generate(
+                    input_ids=input_ids,
+                    attention_mask=attention_mask,
+                    relevant_scores=relevant_scores,
+                    max_new_tokens=100,
+                    do_sample=False,
+                    pad_token_id=tokenizer.pad_token_id,
+                    eos_token_id=tokenizer.eos_token_id,
+                    )
+                #except:
+                #    breakpoint()
+            generated_text = tokenizer.decode(output_ids[0][input_ids.shape[-1]:], skip_special_tokens=True).strip().replace("assistant", "").replace("<|im_start|>\n", "").replace("system\n", "")
+            
+            record["id"] = qid[0]
+            record["question"] = question[0]
+            record["pred"] = generated_text
+            record["gold_answers"] = gold_answers
+            #breakpoint()
+            fout.write(json.dumps(record)+ "\n")
+            fout.flush()
+            predictions.append(generated_text)
+            golds.append(gold_answers) # gold_answers is a list of answers
+            if cur % 100 == 0:
+                print(f"Processed {cur}")
+            #breakpoint()
+
+
+
+if __name__ == "__main__":
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--model_name_or_path", type=str, default="ckpts/Qwen2.5-1.5B-Instruct_open/checkpoint-80000")
+    # parser.add_argument("--src_path", type=str, default="./src")
+    # parser.add_argument("--model_pattern", type=str, default="qwen_decoder")
+    # parser.add_argument("--is_base", type=bool, default=False)
+    # parser.add_argument("--data_path", type=str, default="/data3/private/zwyx/mfr/datasets/nq/dev.jsonl")
+    # parser.add_argument("--RAG_data_path", type=str, default="/data3/private/zwyx/mfr/datasets/nq/RAG_dev_input.jsonl")
+    # parser.add_argument("--RAG_text_path", type=str, default="/data3/private/zwyx/mfr/datasets/wikipedia/pid2psg.pkl")
+    # parser.add_argument("--top_k", type=int, default=5, help="Number of top passages to use")
+    # parser.add_argument("--model_max_length", type=int, default=4096, help="Number of top passages to use")
+    # parser.add_argument("--verbose", action="store_true", help="Print individual predictions")
+    # args = parser.parse_args()
+
+    inference()

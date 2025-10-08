@@ -181,9 +181,6 @@ def load_qpp_data(args):
     examples = []
     pos_num=0
     neg_num=0
-    # for query_id in qrels:
-    #     print(query_id)
-    # print("Available query IDs:", run.keys())
 
     print("run load_qpp_data")
     for qid, qtext in query.items():
@@ -210,9 +207,6 @@ def load_qpp_data(args):
                 # example["output"] = args.prompter.pos_label
                 examples.append(example)
         else:
-            # training
-            # assume that the qrels only include binary relevance labels
-            # postive examples
             for pid in qrels[qid]:
                 example = {}
                 example["example_id"] = f"{qid}#pos#{pid}"
@@ -375,7 +369,6 @@ def load_rj_data(args):
                     example["input"] = args.prompter.template.format(demonstrations="", question=query[qid],passage=passage_text[:args.max_char_len])
 
 
-                # thresholds are set at 1, 2, and 2 for CAsT-19, CAsT-20, and CAsT-21
                 if rel >= args.rel_threshold:
                     example["output"] = args.prompter.pos_label
                     example["example_id"] = f"{qid}#pos#{pid}"
@@ -410,8 +403,6 @@ def load_rj_data(args):
 
             examples.append(example)
 
-    print("sanity check:\n{} {}\n\n{} {}\n".format(examples[0]["input"], examples[0]["output"], examples[-1]["input"], examples[-1]["output"]))
-    print(count)
     return examples
 
 
@@ -715,8 +706,8 @@ if __name__ == '__main__':
     parser.add_argument("--per_device_train_batch_size", type=int, default=32)
     parser.add_argument("--logging_steps", type=int, default=10)
 
-    parser.add_argument("--lora_r", type=int, default=64)  # [64, 16, 8]  # 256？
-    parser.add_argument("--lora_alpha", type=int, default=16) # [32, 16]
+    parser.add_argument("--lora_r", type=int, default=64)  
+    parser.add_argument("--lora_alpha", type=int, default=16) 
     parser.add_argument("--lora_dropout", type=float, default=0.1)
 
     parser.add_argument("--num_demon_per_class", type=int, default=1)

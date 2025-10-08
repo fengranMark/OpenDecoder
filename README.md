@@ -33,4 +33,42 @@ For generating LLM-rank score and QPP score, please run the script as below to p
 
 ## 3. Open the LLM to Modulate the Computation of the Decoder
 
-### 3.1 
+### 3.1 Access the LLM
+Since the OpenDecoder requires modifying the original attention network computation, the first step is to access the LLM by downloading the Qwen-2.5-3B-instruct [checkpoint](https://huggingface.co/Qwen/Qwen2.5-3B-Instruct) to the path ./checkpoint. As the original official source code does not support additional input to inject relevant indicators, we need to load the initial LLM's weight into a modified architecture of LLM with relevance features as one of the input arguments via the script.
+
+    # Remember to adjust Arguments according to the used version of the backbone model
+    bash ./utils/iniModel.sh 
+
+### 3.2 Modulate Computation
+The modified architecture of LLM is under the path with the corresponding configuration.
+
+    ./src/model/qwen_decoder/modeling.py
+
+Within the architecture, we modify the computation of the function "eager_attention_forward" with 
+
+    if kwargs.get("relevant_scores", None) is not None: 
+        relevant_scores = kwargs["relevant_scores"].unsqueeze(1).unsqueeze(-1).to(query.dtype)
+        query = query * relevant_scores
+
+## 4. OpenDecoder
+(1) Train OpenDecoder:
+
+    bash train.sh
+
+The used indicator features and robust training are controlled by 
+
+    --add_irrelevant_psg True/False \ # whether add noisy doc for Robust Rraining
+    --add_LLM_scores True/False \ # whether add LLM-rank scores
+    --add_QPP_scores True/False \ # whether add QPP scores
+
+(2) Inference via OpenDecoder:
+
+    bash inference.sh
+
+The evaluation settings are controlled by 
+
+    --add_irrelevant_psg True/False \ # evaluate in noisy setting
+    --full_irrelevant_psg True/False \ # evaluate in extreme noisy setting
+
+
+    

@@ -8,7 +8,6 @@ sys.path.append('..')
 sys.path.append('.')
 import time
 import json
-#import h5py
 import array
 import pickle
 import argparse
@@ -38,8 +37,6 @@ class ANCE(RobertaForSequenceClassification):
     def _init_weights(self, module):
         """ Initialize the weights """
         if isinstance(module, (nn.Linear, nn.Embedding, nn.Conv1d)):
-            # Slightly different from the TF version which uses truncated_normal for initialization
-            # cf https://github.com/pytorch/pytorch/pull/5617
             module.weight.data.normal_(mean=0.0, std=0.02)
 
     def query_emb(self, input_ids, attention_mask):
@@ -80,15 +77,7 @@ class StreamIndexDataset(IterableDataset):
         with open(self.collection_path, "r") as f:
             for line in f:
                 line = line.strip().split('\t') # doc_id, text
-                #if first_line: # topiocqa
-                #    first_line = False 
-                #    continue
                 cur += 1
-                #if cur <= 50000000:
-                #    continue
-                #passage = line[2].rstrip() + ' ' + line[1].rstrip() # topiocqa
-                #line[1] = passage # topiocqa
-                #line = line[:-1] # topiocqa
                 if len(line) == 1:
                     line.append("")
                 yield line
@@ -197,19 +186,18 @@ def dense_indexing(args):
 def get_args():
     parser = argparse.ArgumentParser()
     
-    #parser.add_argument("--dataset", type=str, required=True, choices=["cast19", "cast20", "qrecc", "topiocqa"])
     parser.add_argument("--model_type", type=str, default='ance')
-    parser.add_argument("--collection_path", type=str, default="../../datasets/inscit/collection.tsv")
-    parser.add_argument("--pretrained_doc_encoder_path", type=str, default="../../checkpoints/ance")
+    parser.add_argument("--collection_path", type=str)
+    parser.add_argument("--pretrained_doc_encoder_path", type=str)
     
-    parser.add_argument("--output_index_dir_path", type=str, default="../../datasets/inscit/index")
+    parser.add_argument("--output_index_dir_path", type=str)
     parser.add_argument("--force_emptying_dir", action="store_true", default=True)
 
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
     parser.add_argument("--use_data_percent", type=float, default=1.0, help="Percent of samples to use. Faciliating the debugging.")
     parser.add_argument("--per_gpu_index_batch_size", type=int, default=250)
 
-    parser.add_argument("--max_doc_length", type=int, default=512, help="Max doc length, consistent with \"Dialog inpainter\".")
+    parser.add_argument("--max_doc_length", type=int, default=512, help="Max doc length")
     
 
     args = parser.parse_args()
@@ -219,9 +207,6 @@ def get_args():
     args.start_running_time = time.asctime(time.localtime(time.time()))
     logger.info("---------------------The arguments are:---------------------")
     logger.info(args)
-
-    #check_dir_exist_or_build([args.output_index_dir_path], force_emptying=args.force_emptying_dir)
-    #json_dumps_arguments(oj(args.output_index_dir_path, "parameters.txt"), args)
         
     return args
 

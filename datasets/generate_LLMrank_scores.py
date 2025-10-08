@@ -72,7 +72,7 @@ def main(queries_path, qid_map_path, RAG_text_path, output_path, batch_size=16):
             queries_data.append(obj)
 
     with jsonlines.open(output_path, "a") as writer:
-        for qobj in tqdm(queries_data, desc="处理 queries"):
+        for qobj in tqdm(queries_data, desc="queries"):
             q = qobj["question"]
             doc_ids = qid2pid[qobj["id"]]
 

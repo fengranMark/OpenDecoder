@@ -1,16 +1,3 @@
-#    Copyright 2023 Rohan Taori, Ishaan Gulrajani, Tianyi Zhang, Yann Dubois, Xuechen Li
-#
-#    Licensed under the Apache License, Version 2.0 (the "License");
-#    you may not use this file except in compliance with the License.
-#    You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS,
-#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#    See the License for the specific language governing permissions and
-#    limitations under the License.
 from dataclasses import dataclass, field
 from torch.utils.data import Dataset, DataLoader
 import pathlib
@@ -29,56 +16,24 @@ from src.dataset.RAG_dataset import Eval_SFT_Dataset, Eval_Open_Dataset, Eval_Mu
 import importlib
 
 
-# def load_imodel_and_iconfig_package(model_pattern, src_path):
-#     # 动态构建模型路径
-#     model_path = os.path.join(src_path, "model")
-
-#     # 判断路径是否存在
-#     if not os.path.exists(model_path):
-#         print(f"路径不存在: {model_path}")
-#         return None, None
-
-#     # 将该路径添加到 sys.path 中，确保 Python 可以找到这些模块
-#     if model_path not in sys.path:
-#         sys.path.append(model_path)
-
-#     # 动态导入模型和配置模块
-#     try:
-#         # 动态导入模型
-#         IModelForCausalLM = importlib.import_module(
-#             f"{model_pattern}.modeling"
-#         ).IModelForCausalLM
-#         IConfig = importlib.import_module(f"{model_pattern}.configuration").IConfig
-#         # 返回导入的类
-#         return IModelForCausalLM, IConfig
-#     except ModuleNotFoundError as e:
-#         print(f"模块加载失败: {e}")
-#         return None, None
-
 def load_imodel_and_iconfig_package(model_pattern, src_path):
-    # 动态构建模型路径
     model_path = os.path.join(src_path, "model")
 
-    # 判断路径是否存在
     if not os.path.exists(model_path):
-        print(f"路径不存在: {model_path}")
+        print(f"Incorrect Path: {model_path}")
         return None, None
 
-    # 将该路径添加到 sys.path 中，确保 Python 可以找到这些模块
     if model_path not in sys.path:
         sys.path.append(model_path)
 
-    # 动态导入模型和配置模块
     try:
-        # 动态导入模型
         IModelForCausalLM = importlib.import_module(
             f"{model_pattern}.modeling"
         ).IModelForCausalLM
         IConfig = importlib.import_module(f"{model_pattern}.configuration").IConfig
-        # 返回导入的类
         return IModelForCausalLM, IConfig
     except ModuleNotFoundError as e:
-        print(f"模块加载失败: {e}")
+        print(f"Module Error: {e}")
         return None, None
 
 
@@ -246,17 +201,6 @@ def inference():
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token_id = tokenizer.eos_token_id
     
-    # input_text = "who is in charge of enforcing the pendleton act of 1883"
-    # inputs = tokenizer(input_text, return_tensors="pt").to(device)
-    # with torch.no_grad():
-    #     output = model.generate(
-    #         **inputs,
-    #         max_new_tokens=16,
-    #         do_sample=True,
-    #         top_p=0.9,
-    #         temperature=0.8
-    # )
-    #tokenizer.decode(output[0])
     special_passage_tokens = [f"Passage_{i+1}:" for i in range(20)]
     tokenizer.add_special_tokens({'additional_special_tokens': special_passage_tokens})
     model.resize_token_embeddings(len(tokenizer))  # Resize embeddings to accommodate new tokens
@@ -290,7 +234,6 @@ def inference():
             gold_answers = batch["gold_answers"]
             #breakpoint()
             with torch.no_grad():
-                #try:
                 output_ids = model.generate(
                     input_ids=input_ids,
                     attention_mask=attention_mask,
@@ -300,8 +243,6 @@ def inference():
                     pad_token_id=tokenizer.pad_token_id,
                     eos_token_id=tokenizer.eos_token_id,
                     )
-                #except:
-                #    breakpoint()
             generated_text = tokenizer.decode(output_ids[0][input_ids.shape[-1]:], skip_special_tokens=True).strip().replace("assistant", "").replace("<|im_start|>\n", "").replace("system\n", "")
             
             record["id"] = qid[0]
@@ -320,17 +261,4 @@ def inference():
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("--model_name_or_path", type=str, default="ckpts/Qwen2.5-1.5B-Instruct_open/checkpoint-80000")
-    # parser.add_argument("--src_path", type=str, default="./src")
-    # parser.add_argument("--model_pattern", type=str, default="qwen_decoder")
-    # parser.add_argument("--is_base", type=bool, default=False)
-    # parser.add_argument("--data_path", type=str, default="/data3/private/zwyx/mfr/datasets/nq/dev.jsonl")
-    # parser.add_argument("--RAG_data_path", type=str, default="/data3/private/zwyx/mfr/datasets/nq/RAG_dev_input.jsonl")
-    # parser.add_argument("--RAG_text_path", type=str, default="/data3/private/zwyx/mfr/datasets/wikipedia/pid2psg.pkl")
-    # parser.add_argument("--top_k", type=int, default=5, help="Number of top passages to use")
-    # parser.add_argument("--model_max_length", type=int, default=4096, help="Number of top passages to use")
-    # parser.add_argument("--verbose", action="store_true", help="Print individual predictions")
-    # args = parser.parse_args()
-
     inference()

@@ -75,13 +75,13 @@ def construct_noisy_evaluation(collection, input_file, input_file_2, output_file
             print("processed", i)
             g.write(json.dumps(record_2) + '\n')
 
-collection = "../wikipedia/pid2psg.pkl"
+collection = "wikipedia/pid2psg.pkl"
 input_file = "train.jsonl"
 input_file_2 = "RAG_train_input.jsonl"
-output_file = "./RAG_train_input_final.jsonl"
-model_path = "../../checkpoints/e5-base-v2"
+output_file = "RAG_train_input.jsonl"
+model_path = "e5-base-v2"
 construct_noisy_evaluation(collection, input_file, input_file_2, output_file, model_path)
 input_file = "train.jsonl"
 input_file_2 = "RAG_test_input.jsonl"
-output_file = "./RAG_test_input_final.jsonl"
+output_file = "RAG_test_input.jsonl"
 construct_noisy_evaluation(collection, input_file, input_file_2, output_file, model_path)

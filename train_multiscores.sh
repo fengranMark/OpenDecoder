@@ -35,9 +35,9 @@ python ./src/train.py \
     --model_pattern $MODEL_PATTERN \
     --train_mode $train_mode \
     --add_irrelevant_psg True \ # whether add noisy doc for robust training
-    --add_LLM_scores True \ # whether add LLM-judge scores
+    --add_LLM_scores True \ # whether add LLM-rank scores
     --add_QPP_scores False \ # whether add QPP scores
-    --top_k $top_k \
+    --top_k $top_k \ # input top-k numbers
     --normalization_type normal \
     --shuffle_RAG False \ # whether shuffule the doc positions
     --src_path $src_path \

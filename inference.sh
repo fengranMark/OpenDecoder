@@ -55,10 +55,10 @@ python ./inference.py \
     --result_path $RESULT_PATH \
     --model_pattern $MODEL_PATTERN \
     --train_mode "open" \
-    --add_irrelevant_psg False \
-    --add_LLM_scores True \
-    --add_QPP_scores False \
-    --full_irrelevant_psg False \
+    --add_irrelevant_psg True \ # evaluate in noisy setting
+    --add_LLM_scores True \ # whether add LLM-rank scores
+    --add_QPP_scores False \ # whether add QPP scores
+    --full_irrelevant_psg False \ # evaluate in extreme noisy setting
     --top_k 10 \
     --normalization_type normal \
     --shuffle_RAG False \

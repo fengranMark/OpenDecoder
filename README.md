@@ -1,5 +1,5 @@
 # OpenDecoder
-A repository of the OpenDecoder framework: Open Large Language Model Decoding to Incorporate Document Quality in RAG.
+A temporary repository of the OpenDecoder framework: Open Large Language Model Decoding to Incorporate Document Quality in RAG.
 
 # Running Steps
 ## 1. Download data and Preprocessing

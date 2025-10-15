@@ -23,11 +23,11 @@ The file structure for datasets is shown below. Please be careful of the path se
     │ └── wikipedia
     ├── src/ 
     │ ├── retrieval    
-    │ └── model
+    │ └── model/qwen_decoder
     ├── utils/
     ├── outputs/
     
-Then index the Wikipedia collection and construct passage ID to passage text map. (Remember to use your path)
+Then index the Wikipedia collection and construct a mapping from passage ID to passage text. (Remember to use your relative path)
 
     python ./src/e5_dense_index.py
     python ./utils/wikipid2psg.py

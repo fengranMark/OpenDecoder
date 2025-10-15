@@ -44,6 +44,25 @@ retrieval_file = "nq_test_e5.trec"
 RAG_file = "RAG_test_input.jsonl"
 construct_RAG_input(retrieval_file, RAG_file)
 
+def get_embedding(text, tokenizer, model, device):
+    tokens = tokenizer(text, return_tensors="pt", truncation=True, padding=True).to(device)
+    with torch.no_grad():
+        output = model(**tokens)
+        token_embeddings = output.last_hidden_state  # [batch, seq, hidden]
+        attention_mask = tokens['attention_mask']
+        input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size())
+        return (token_embeddings * input_mask_expanded).sum(1) / input_mask_expanded.sum(1)  # mean pooling
+
+
+def calculate_similarity(model, tokenizer, query, passage, device):
+    query = "query: " + query
+    passage = "passage: " + passage
+
+    query_emb = get_embedding(query, tokenizer, model, device)      # [1, hidden]
+    passage_emb = get_embedding(passage, tokenizer, model, device)  # [1, hidden]
+    similarity = torch.matmul(query_emb, passage_emb.T)  # [1, 1]
+    return round(similarity.item(), 4)
+
 def construct_noisy_evaluation(collection, input_file, input_file_2, output_file, model_path):
     pid2passage = pload(collection)
     len_collection = len(pid2passage)

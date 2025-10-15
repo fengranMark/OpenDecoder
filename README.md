@@ -79,9 +79,10 @@ Within the architecture, we modify the computation of the function "eager_attent
 
 The used indicator features and robust training are controlled by 
 
-    --add_irrelevant_psg True/False \ # whether add noisy doc for Robust Rraining
+    --add_irrelevant_psg True/False \ # whether add noisy doc for Robust Training
     --add_LLM_scores True/False \ # whether add LLM-rank scores
     --add_QPP_scores True/False \ # whether add QPP scores
+    --shuffle_RAG True/False \ # whether shuffle the position for Robust Training
 
 We recommend beginning with all False and adjusting accordingly
 

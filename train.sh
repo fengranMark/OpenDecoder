@@ -2,15 +2,15 @@
 
 train_mode=open
 top_k=10
-experiment_name=Qwen2.5-3B-Instruct_nq_hotpotqa_${train_mode}_top${top_k}
+experiment_name=Qwen2.5-3B-Instruct-OpenDecoder_nq_hotpotqa_${train_mode}_top${top_k}
 WANDB_PROJECT=$experiment_name  # project name in wandb
 MODEL_PATH=./checkpoints/Qwen2.5-3B-Instruct-OpenDecoder
 NQ_DATA_PATH=./datasets/nq/train.jsonl
-NQ_RAG_DATA_PATH=./datasets/nq/RAG_input.jsonl
+NQ_RAG_DATA_PATH=./datasets/nq/RAG_train_input_robust.jsonl # ./datasets/nq/RAG_train_input.jsonl for not robust training
 NQ_LLM_SCORE_PATH=./datasets/nq/train_LLM_ranking_score.jsonl
 NQ_QPP_SCORE_PATH=./datasets/nq/train_QPP_score.jsonl
-HOTPOTQA_DATA_PATH=./datasets/hotpotqa/hotpot_train.jsonl
-HOTPOTQA_RAG_DATA_PATH=./datasets/hotpotqa/RAG_input.jsonl
+HOTPOTQA_DATA_PATH=./datasets/hotpotqa/train.jsonl
+HOTPOTQA_RAG_DATA_PATH=./datasets/hotpotqa/RAG_train_input.jsonl # ./datasets/hotpotqa/RAG_train_input.jsonl for not robust training
 HOTPOTQA_LLM_SCORE_PATH=./datasets/hotpotqa/train_LLM_ranking_score.jsonl
 HOTPOTQA_QPP_SCORE_PATH=./datasets/hotpotqa/train_QPP_score.jsonl
 RAG_TEXT_PATH=./datasets/wikipedia/pid2psg.pkl
@@ -34,12 +34,12 @@ python ./src/train.py \
     --RAG_text_path $RAG_TEXT_PATH \
     --model_pattern $MODEL_PATTERN \
     --train_mode $train_mode \
-    --add_irrelevant_psg True \ # whether add noisy doc for robust training
-    --add_LLM_scores True \ # whether add LLM-rank scores
-    --add_QPP_scores False \ # whether add QPP scores
-    --top_k $top_k \ # input top-k numbers
+    --add_irrelevant_psg False \
+    --add_LLM_scores False \
+    --add_QPP_scores False \
+    --top_k $top_k \
     --normalization_type normal \
-    --shuffle_RAG False \ # whether shuffule the doc positions
+    --shuffle_RAG False \
     --src_path $src_path \
     --bf16 True \
     --output_dir ./ckpts/${experiment_name} \

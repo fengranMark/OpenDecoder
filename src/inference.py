@@ -6,14 +6,12 @@ import torch
 import transformers
 import os
 import sys
-#import wandb
 import tqdm
 import argparse
 import json
-#wandb.init(mode="disabled")
-from src.eval.eval_metric import f1_score, acc_score, EM_score
-from src.dataset.RAG_dataset import Eval_SFT_Dataset, Eval_Open_Dataset, Eval_MultiOpen_Dataset
+from RAG_dataset import Eval_SFT_Dataset, Eval_Open_Dataset, Eval_MultiOpen_Dataset
 import importlib
+os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6"
 
 
 def load_imodel_and_iconfig_package(model_pattern, src_path):
@@ -138,7 +136,7 @@ class TrainingArguments(transformers.TrainingArguments):
     cache_dir: Optional[str] = field(default=None)
     optim: str = field(default="adamw_torch")
     predict_with_generate: bool = True
-    train_mode: str = field(default="sft")
+    mode: str = field(default="open")
     model_max_length: int = field(
         default=4096,
         metadata={
@@ -184,7 +182,7 @@ def inference():
             torch_dtype=torch.bfloat16 if enable_flash_attn else "auto",
             cache_dir=training_args.cache_dir,
         )
-    device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:6" if torch.cuda.is_available() else "cpu")
     model.to(device)
     model.eval()
     tokenizer = transformers.AutoTokenizer.from_pretrained(
@@ -204,9 +202,9 @@ def inference():
     special_passage_tokens = [f"Passage_{i+1}:" for i in range(20)]
     tokenizer.add_special_tokens({'additional_special_tokens': special_passage_tokens})
     model.resize_token_embeddings(len(tokenizer))  # Resize embeddings to accommodate new tokens
-    if training_args.train_mode == "sft":
+    if training_args.mode == "sft":
         eval_dataset = Eval_SFT_Dataset(tokenizer, data_args)
-    elif training_args.train_mode == "open":
+    elif training_args.mode == "open":
         if data_args.add_LLM_scores or data_args.add_QPP_scores:
             eval_dataset = Eval_MultiOpen_Dataset(tokenizer, data_args)
         else:
@@ -215,7 +213,8 @@ def inference():
         raise ValueError
     eval_loader = DataLoader(eval_dataset, batch_size=1, shuffle=False)
 
-    predictions, golds, f1, acc, em = [], [], [], [], []
+    predictions, golds =  [], []
+    f1, acc, em = [], [], []
     cur = 0
     os.makedirs(data_args.output_data_path, exist_ok=True)
     output_file = os.path.join(data_args.output_data_path, "pred.json")
@@ -229,10 +228,9 @@ def inference():
             question = batch["question"]
             input_ids = batch["input_ids"].to(device)             # [seq_len]
             attention_mask = batch["attention_mask"].to(device)    # [seq_len]
-            if training_args.train_mode == "open":
+            if training_args.mode == "open":
                 relevant_scores = batch["relevant_scores"].to(device)  # [seq_len]
             gold_answers = batch["gold_answers"]
-            #breakpoint()
             with torch.no_grad():
                 output_ids = model.generate(
                     input_ids=input_ids,
@@ -249,13 +247,12 @@ def inference():
             record["question"] = question[0]
             record["pred"] = generated_text
             record["gold_answers"] = gold_answers
-            #breakpoint()
             fout.write(json.dumps(record)+ "\n")
             fout.flush()
-            predictions.append(generated_text)
-            golds.append(gold_answers) # gold_answers is a list of answers
-            if cur % 100 == 0:
-                print(f"Processed {cur}")
+            # predictions.append(generated_text)
+            # golds.append(gold_answers) # gold_answers is a list of answers
+            # if cur % 100 == 0:
+            #     print(f"Processed {cur}")
             #breakpoint()
 
 

@@ -116,7 +116,7 @@ def calculate_metric(pred_path, gold_path, result_path, start=None, end=None):
         print(f"{avg_f1*100:.2f} & {avg_em*100:.2f} & {avg_acc*100:.2f}")
 
 # data_path = "./noisy_output/Qwen2.5-1.5B-Instruct_nq_hotpotqa_open_top10_irrel"
-# dataset_path = "/data/rech/mofengra/datasets"
+# dataset_path = "./datasets"
 # pred_path = f"{data_path}/all/pred.json"
 # gold_path = f"{dataset_path}/nq/test.jsonl"
 # result_path = f"{data_path}/nq_result.txt"
@@ -144,7 +144,7 @@ def calculate_metric(pred_path, gold_path, result_path, start=None, end=None):
 
 
 data_path = "./output/Qwen2.5-1.5B-Instruct_RAG_top10"
-dataset_path = "/data/rech/mofengra/datasets"
+dataset_path = "./datasets"
 pred_path = f"{data_path}/nq/pred.json"
 gold_path = f"{dataset_path}/nq/test.jsonl"
 result_path = f"{data_path}/nq/result.txt"

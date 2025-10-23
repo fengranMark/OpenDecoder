@@ -1,8 +1,8 @@
 #!/bin/bash
 
-MODEL_PATH=ckpts/Qwen2.5-3B-Instruct_nq_hotpotqa_open_top10_irrel_LLM/checkpoint-10000
+MODEL_PATH=outputs/Qwen2.5-7B-Instruct-OpenDecoder_nq_hotpotqa_open_top10/checkpoint-10601
 NQ_DATA_PATH=./datasets/nq/test.jsonl
-NQ_RAG_DATA_PATH=./datasets/nq/RAG_test_input.jsonl
+NQ_RAG_DATA_PATH=./datasets/nq/RAG_test_input_robust.jsonl
 NQ_LLM_SCORE_PATH=./datasets/nq/test_LLM_ranking_score.jsonl
 NQ_QPP_SCORE_PATH=./datasets/nq/test_QPP_score.jsonl
 HOTPOTQA_DATA_PATH=./datasets/hotpotqa/hotpot_dev.jsonl
@@ -22,13 +22,14 @@ TWIKI_RAG_DATA_PATH=./datasets/2wiki/RAG_dev_input.jsonl
 TWIKI_LLM_SCORE_PATH=./datasets/2wiki/dev_LLM_ranking_score.jsonl
 TWIKI_QPP_SCORE_PATH=./datasets/2wiki/dev_QPP_score.jsonl
 RAG_TEXT_PATH=./datasets/wikipedia/pid2psg.pkl
-OUTPUT_DATA_PATH=./output/Qwen2.5-3B-Instruct_nq_hotpotqa_open_top10_irrel_LLM/all
-RESULT_PATH=./output/Qwen2.5-3B-Instruct_nq_hotpotqa_open_top10_irrel_LLM/all/result.txt
+OUTPUT_DATA_PATH=./results/Qwen2.5-7B-Instruct-OpenDecoder_nq_hotpotqa_open_top10/all
+RESULT_PATH=./results/Qwen2.5-7B-Instruct-OpenDecoder_nq_hotpotqa_open_top10/all/result.txt
 MODEL_PATTERN=qwen_decoder # the path to the model in src/model
 src_path=./src
 log_name=$(date +"%m-%d_%H-%M").log
 
-python ./inference.py \
+
+python ./src/inference.py \
     --model_name_or_path $MODEL_PATH \
     --NQ_data_path $NQ_DATA_PATH \
     --NQ_RAG_data_path $NQ_RAG_DATA_PATH \
@@ -54,11 +55,11 @@ python ./inference.py \
     --output_data_path $OUTPUT_DATA_PATH \
     --result_path $RESULT_PATH \
     --model_pattern $MODEL_PATTERN \
-    --train_mode "open" \
-    --add_irrelevant_psg True \ # evaluate in noisy setting
-    --add_LLM_scores True \ # whether add LLM-rank scores
-    --add_QPP_scores False \ # whether add QPP scores
-    --full_irrelevant_psg False \ # evaluate in extreme noisy setting
+    --mode "open" \
+    --add_irrelevant_psg True \
+    --add_LLM_scores False \
+    --add_QPP_scores False \
+    --full_irrelevant_psg False \
     --top_k 10 \
     --normalization_type normal \
     --shuffle_RAG False \

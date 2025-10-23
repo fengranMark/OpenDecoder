@@ -75,7 +75,8 @@ Within the architecture, we modify the computation of the function "eager_attent
 ## 4. OpenDecoder
 (1) Train OpenDecoder:
 
-    bash train.sh
+    bash train.sh # single GPU
+    bash train_parallel.sh # multiple GPUs
 
 The used indicator features and robust training are controlled by 
 

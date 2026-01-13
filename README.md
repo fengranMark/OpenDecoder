@@ -1,5 +1,5 @@
 # OpenDecoder
-A temporary repository of the OpenDecoder framework: Open Large Language Model Decoding to Incorporate Document Quality in RAG.
+A temporary repository of the WWW 2026 accepted paper - OpenDecoder framework: Open Large Language Model Decoding to Incorporate Document Quality in Retrieval-Augmented Generation.
 
 # Running Steps
 ## 1. Download data and Preprocessing

@@ -1,6 +1,8 @@
 # OpenDecoder
 A temporary repository of the WWW 2026 accepted paper - OpenDecoder framework: Open Large Language Model Decoding to Incorporate Document Quality in Retrieval-Augmented Generation.
 
+The checkpoint will be available soon!
+
 # Running Steps
 ## 1. Download data and Preprocessing
 

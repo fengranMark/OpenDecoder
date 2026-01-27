@@ -108,3 +108,16 @@ You can inspect and try to run inference_single_sample.py to get an idea of what
 python inference_single_sample.py
 ```
 
+# Citation Info
+
+If you find our paper or models helpful, please consider cite as follows:
+
+```
+@article{mo2026opendecoder,
+  title={Opendecoder: Open large language model decoding to incorporate document quality in rag},
+  author={Mo, Fengran and Su, Zhan and Hui, Yuchen and Zhang, Jinghan and Sun, Jia Ao and Liu, Zheyuan and Zhang, Chao and Sakai, Tetsuya and Nie, Jian-Yun},
+  journal={arXiv preprint arXiv:2601.09028},
+  year={2026}
+}
+```
+

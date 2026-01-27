@@ -101,4 +101,10 @@ The evaluation settings are controlled by
     --full_irrelevant_psg True/False \ # evaluate in extreme noisy setting
 
 
-    
+(3) Inference a minumum example ( question + retrieved docs + relevance scores):
+
+You can inspect and try to run inference_single_sample.py to get an idea of what are expected by OpenDecoder as inputs.
+```
+python inference_single_sample.py
+```
+

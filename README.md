@@ -1,4 +1,4 @@
-![Overview of the APCIR Framwork](./opendecoder.png)
+![Overview of OpenDecoder](./opendecoder.png)
 # OpenDecoder
 A temporary repository of the WWW 2026 accepted paper - OpenDecoder framework: Open Large Language Model Decoding to Incorporate Document Quality in Retrieval-Augmented Generation.
 

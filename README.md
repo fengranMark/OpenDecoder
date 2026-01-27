@@ -1,7 +1,7 @@
 # OpenDecoder
 A temporary repository of the WWW 2026 accepted paper - OpenDecoder framework: Open Large Language Model Decoding to Incorporate Document Quality in Retrieval-Augmented Generation.
 
-The checkpoint is available at [our huggingface repo](https://huggingface.co/Meranti/OpenDecoder)
+The checkpoint is available at [our huggingface repo](https://huggingface.co/Meranti/OpenDecoder).
 
 # Running Steps
 ## 1. Download data and Preprocessing
